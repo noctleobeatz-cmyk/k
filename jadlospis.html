@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Jadłospis tygodniowy - pełny widok posiłków na dany tydzień, gotowy do wydruku i publikacji, ze sprawdzeniem zgodności z rozporządzeniem Ministra Zdrowia.">
+        <title>Stołówka – Jadłospis tygodniowy</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="jadlospis-naglowek">
+                <h1>Jadłospis tygodniowy</h1>
+                <p>Pełny widok posiłków na dany tydzień - gotowy do wydruku i publikacji dla rodziców oraz uczniów.</p>
+            </section>
+
+            <section id="jadlospis-nawigacja">
+                <button type="button" id="tydzien-poprzedni">&lt;</button>
+                <span id="jadlospis-zakres"></span>
+                <button type="button" id="tydzien-nastepny">&gt;</button>
+            </section>
+
+            <section id="jadlospis-status"></section>
+
+            <section id="jadlospis-siatka"></section>
+
+            <section id="jadlospis-akcje">
+                <button type="button" id="drukuj-jadlospis">Drukuj / eksportuj jadłospis</button>
+            </section>
+
+        </section>
+        <script src="script.js"></script>
+        <script src="jadlospis.js"></script>
+    </body>
+</html>

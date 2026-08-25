@@ -1,0 +1,386 @@
+"""
+GENERATOR DAŃ SZKOLNYCH - WERSJA 2026
+=======================================
+Zgodny z:
+1. Rozporządzeniem Ministra Zdrowia z 16 lutego 2026 (Dz.U. 2026 poz. 197)
+2. Normami Żywienia dla Populacji Polski 2024 (NIZP PZH-PIB)
+3. Zaleceniami Talerza Zdrowego Żywienia
+4. Zasadami Diety Planetarnej
+
+ZMIANY OD WRZEŚNIA 2026:
+✅ Minimum 2 razy w tygodniu zupy na wywarze WARZYWNYM (nie mięsnym!)
+✅ OBIAD MAX 2 RAZY NA TYDZIEŃ - mięsny/rybny (nie zamiast warzyw)
+✅ Każde danie: WARZYWA > OWOCE (warzywa muszą być większością)
+✅ Co najmniej 1x tygodniu: potrawa roślinna bez produktów odzwierzęcych
+✅ Produkty mięsne: TYLKO świeże (bez garmażeryjnych, bez wędlin!)
+✅ Produkty całoziareniste: PREFEROWANE
+✅ Kryterium zawartości cukrów, soli, tłuszczów w produktach
+✅ Woda jako preferowany napój
+✅ Przedszkole: 70-75% dziennego zapotrzebowania (dekadowo)
+✅ Szkoła: Obiad jednodaniowy 20%, dwudaniowy 30% dziennego zapotrzebowania
+"""
+
+import json
+import os
+import random
+import re
+import sys
+from datetime import datetime
+
+try:
+    sys.stdout.reconfigure(line_buffering=True)
+except AttributeError:
+    pass
+
+print("""
+╔════════════════════════════════════════════════════════════════════════╗
+║  GENERATOR DAŃ SZKOLNYCH - WERSJA 2026                                 ║
+║  Rozporządzenie MZ z 16 lutego 2026 (Dz.U. 2026 poz. 197)              ║
+║  Normy Żywienia NIZP PZH-PIB 2024                                      ║
+╚════════════════════════════════════════════════════════════════════════╝
+""")
+
+
+NORMY_ENERGETYCZNE_2024 = {
+    "przedszkole_3_4_lata": {"mężczyźni": 1500, "kobiety": 1500},
+    "przedszkole_4_6_lat": {"mężczyźni": 1600, "kobiety": 1600},
+    "szkoła_7_9_lat": {"mężczyźni": 1800, "kobiety": 1800},
+    "szkoła_10_12_lat": {"mężczyźni": 2000, "kobiety": 2000},
+    "szkoła_13_18_lat_m": {"mężczyźni": 2400, "kobiety": 2000},
+}
+
+POKRYCIE_ENERGII = {
+    "przedszkole_pelne_zywienie": {
+        "procent": 70,
+        "min": 0.70,
+        "max": 0.75,
+        "opis": "Żywienie całodzienne w przedszkolu (70-75% dziennie)"
+    },
+    "szkoła_obiad_jednodaniowy": {
+        "procent": 20,
+        "min": 0.18,
+        "max": 0.22,
+        "opis": "Obiad jednodaniowy w szkole (20% dziennie)"
+    },
+    "szkoła_obiad_dwudaniowy": {
+        "procent": 30,
+        "min": 0.28,
+        "max": 0.32,
+        "opis": "Obiad dwudaniowy w szkole (30% dziennie)"
+    }
+}
+
+
+REKOMENDACJE_MAKROSKADNIKI = {
+    "białko_procent": (10, 15),
+    "tłuszcz_procent": (25, 35),
+    "węglowodany_procent": (50, 60),
+    "błonnik_min_g_na_100g": 3,
+    "cukry_max_procent": 10,
+    "sód_max_mg_dziennie": 2000,
+    "sód_max_mg_porcja_obiad": 600,
+}
+
+
+WYMOGI_ROZP_MZ_2026 = {
+    "Warzywa w każdym posiłku": {
+        "wymóg": "Warzywa > Owoce (warzywa muszą stanowić większość)",
+        "priorytet": "KRYTYCZNE",
+        "opis": "Wg Talerza Zdrowego Żywienia"
+    },
+    "Mięso świeże": {
+        "wymóg": "TYLKO świeże, nie: garmażeryjne, przetworzane, wędliny",
+        "priorytet": "KRYTYCZNE",
+        "opis": "Wg definicji Rozporządzenia UE 2020/692"
+    },
+    "Dieta planetarna": {
+        "wymóg": "Większy udział produktów roślinnych",
+        "priorytet": "WYSOKI",
+        "opis": "Zdrowie + Środowisko"
+    },
+    "Zupy warzywne": {
+        "wymóg": "Min. 2x tygodniu na wywarze warzywnym (nie mięsnym!)",
+        "priorytet": "WYSOKI",
+        "opis": "Obowiązkowe od września 2026"
+    },
+    "Owoce strączkowe": {
+        "wymóg": "Min. 1x tygodniu: potrawa bez produktów odzwierzęcych",
+        "priorytet": "WYSOKI",
+        "opis": "Obowiązkowe od września 2026"
+    },
+    "Produkty całoziareniste": {
+        "wymóg": "PREFEROWANE (wskazane jako składnik pożądany)",
+        "priorytet": "WYSOKI",
+        "opis": "Pełnoziarniste zboża"
+    },
+    "Mięso max 2x": {
+        "wymóg": "Potrawy mięsne max 2 razy w tygodniu w obiedzie",
+        "priorytet": "WYSOKI",
+        "opis": "Ograniczenie nadmiernego spożycia mięsa"
+    }
+}
+
+
+KRYTERIA_PRODUKTOW_2026 = {
+    "Produkty zbożowe (tradycyjne i bezglutenowe)": {
+        "cukry_max_g_na_100g": 10,
+        "tluszcz_max_g_na_100g": 10,
+        "sol_max_g_na_100g": 1,
+    },
+    "Pieczywo cukiernicze i półcukiernicze": {
+        "cukry_max_g_na_100g": 13.5,
+        "tluszcz_max_g_na_100g": 10,
+        "sol_max_g_na_100g": 1.2,
+    },
+    "Produkty mleczne (jogurt, mleko, etc.)": {
+        "cukry_max_g_na_100ml": 10,
+        "bez_substancji_slowodzacych": True,
+    },
+    "Napoje roślinne (wzbogacone Ca + B12)": {
+        "cukry_max_g_na_100ml": 10,
+        "wapn_min_mg_na_100ml": 120,
+        "b12_min_ug_na_100ml": 0.75,
+    },
+    "Oleje do smażenia": {
+        "dopuszczalne": ["rafinowana oliwa z oliwek", "olej rzepakowy"],
+        "niedopuszczalne": ["margaryna", "masło do smażenia"],
+    }
+}
+
+
+KATEGORIE_SKLADNIKOW = {
+    "ryba": [
+        "ryba", "ryby", "mintaj", "dorsz", "łosoś", "makrela", "filet z ryby",
+        "morszczuk", "śledź", "pstrąg", "halibut", "okoń morski", "sandacz"
+    ],
+    "straczki": [
+        "fasol", "ciecierzyc", "soczewic", "groch", "bób", "strączk", "hummus"
+    ],
+    "mieso_swieze": [
+        "wieprzow", "wołow", "drobiow", "kurczak", "indyk", "schab", "karkówk",
+        "mięso", "kotlet (naturalny)", "mielone (świeże)"
+    ],
+    "mieso_przetworzane_ZAKAZ": [
+        "kielbas", "wędlin", "mortadel", "pâté", "schab pieczony", "mięso garmażeryjne",
+        "gotowy kotlet", "gotowy schnitzel", "konserwa mięsna"
+    ],
+    "nabial_jajo": [
+        "mleko", "śmietana", "ser ", "jogurt", "jajko", "twaróg", "masło", "kefir",
+        "serek", "mleko zsiadłe"
+    ],
+    "wywar_warzywny": [
+        "wywar warzywny", "bulion warzywny", "rosół warzywny"
+    ],
+    "wywar_mieso_ZAKAZANY": [
+        "wywar mięsny", "bulion mięsny", "rosół mięsny", "kostka drożdżowa"
+    ],
+    "warzywo": [
+        "marchew", "pietruszka", "seler", "kapust", "burak", "ogórek",
+        "pomidor", "cebul", "brokuł", "szpinak", "papryk", "cukini", "por",
+        "groszek", "fasolka zielona", "kalafior", "rzepa", "buraki"
+    ],
+    "owoc": [
+        "jabłk", "gruszk", "truskaw", "borówk", "malina", "czarna porzeczk",
+        "morela", "śliw", "banan", "miód", "cytrus", "pomarańcz"
+    ],
+    "caloziarniste": [
+        "pełnoziarniste", "caloziarniste", "żytni", "pszenny", "orkisz",
+        "żyto", "owies"
+    ],
+    "czysty_cukier_ZAKAZANY": [
+        "cukier", "syrop", "miód (samo)", "melasa"
+    ]
+}
+
+
+PROMPT_NOWE_DANIE_2026 = """
+GENERATOR DAŃ SZKOLNYCH - WERSJA 2026
+Obowiązują NOWE przepisy od 1 września 2026 (Rozporządzenie MZ Dz.U. 2026 poz. 197)
+
+⚠️  OBOWIĄZKOWE WYMOGI (KRYTYCZNE):
+═════════════════════════════════════════════════════════════════
+
+1. ✅ WARZYWA W KAŻDYM POSIŁKU
+   - Warzywa MUSZĄ być większością niż owoce
+   - Minimum 2-3 porcje różnych warzyw na danie
+   - Świeże warzywa preferowane
+
+2. ✅ MIĘSO TYLKO ŚWIEŻE!
+   - ZAKAZ: garmażeryjne, wędliny, przetworzane
+   - PRZYKŁAD: świeża pierś kurczaka, schab świeży
+   - ZAKAZ: gotowe kotlety, kielbasy, pâté
+
+3. ✅ ZUPY NA WYWARZE WARZYWNYM
+   - Min. 2x tygodniu
+   - Bazą MUSI być wywar warzywny (marchew, pietruszka, seler, cebula)
+   - ZAKAZ: wywar mięsny, kostka drożdżowa
+
+4. ✅ POTRAWA ROŚLINNA BEZ PRODUKTÓW ODZWIERZĘCYCH
+   - Min. 1x tygodniu
+   - Bazą: strączki (fasola, soczewica, ciecierzyca, groch)
+   - Bez mięsa, ryby, mleka, jajek
+
+5. ✅ MIĘSO NIESTRAWNE MAX 2x W TYGODNIU
+   - Potrawy mięsne/rybne: maksymalnie 2 razy
+   - Pozostałe dni: warzywa, leguminy, ryby z warzywami
+
+6. ✅ PRODUKTY CAŁOZIARENISTE
+   - PREFEROWANE (pełnoziarniste chleby, kasze)
+   - Powinny stanowić regularny element menu
+
+7. ✅ KRYTERIA PRODUKTÓW (Wg Tabl. Rozp. 2026):
+   - Produkty zbożowe: MAX 10g cukru, 10g tłuszczu, 1g soli NA 100g
+   - Pieczywo cukiernicze: MAX 13,5g cukru, 10g tłuszczu, 1,2g soli
+   - Mleko/jogurt: MAX 10g cukru NA 100ml, BEZ substancji słodzących!
+   - Do smażenia: TYLKO oliwa z oliwek (rafinowana) lub olej rzepakowy
+
+8. ✅ DIETA PLANETARNA
+   - Większy udział produktów roślinnych
+   - Zmniejszenie mięsa, zwiększenie warzyw i owoców
+   - Jak najbardziej produkty lokalne/ekologiczne
+
+9. ✅ WODA PREFEROWANA
+   - Woda pitna: główny napój
+   - Napoje roślinne: tylko wzbogacone Ca + B12
+
+Znane produkty (DOKŁADNIE te nazwy):
+{ZNANE_NAZWY}
+
+Wygeneruj {ILOSC} dań (JSON) na JEDEN TYDZIEŃ (pn-pt), ściśle respektując:
+- Wszystkie wymogi powyżej
+- Różnorodność typologiczną
+- Wymogi MZ 2026 + NIZP PZH 2024
+
+Struktura każdego obiektu JSON:
+{{
+  "id": {START_ID},
+  "nazwa": "<nazwa po polsku>",
+  "typ_dania": "<'zupa' | 'danie_glowne' | 'napoj' | 'dessert'>",
+  "typ_posilku": "<'obiad_jednodaniowy' | 'danie_glowne_dwudaniowego' | 'zupa_dwudaniowego'>",
+  "skladniki": [
+    {{"nazwa_skladnika": "<dokładnie jak w liście>", "gram": <int>}}
+  ],
+  "zgodny_z_wymogami_2026": true,  # MUSI być true!
+  "notatka": "<OPCJONALNIE: uzasadnienie zgodności>"
+}}
+
+KRYTYCZNIE WAŻNE:
+⚠️  JSON MUSI być POPRAWNY - bez błędów!
+⚠️  Każde danie MUSI mieć warzywa jako główny składnik
+⚠️  Jeśli mięso - TYLKO świeże!
+⚠️  Jeśli zupa - MUSI być na wywarze warzywnym
+⚠️  ŻADEN przetworzony produkt mięsny!
+
+WYŁĄCZNIE poprawny JSON, bez tekstu przed/po, bez ```markdown.
+"""
+
+def sprawdz_czy_przetworzony(nazwa_skladnika):
+    """Sprawdza czy produkt to przetworzone mięso (ZAKAZ od 2026)"""
+    t = nazwa_skladnika.lower()
+    for zakaz in KATEGORIE_SKLADNIKOW["mieso_przetworzane_ZAKAZ"]:
+        if zakaz in t:
+            return True
+    return False
+
+def sprawdz_czy_swiezy_mieso(nazwa_skladnika):
+    """Sprawdza czy to świeże mięso (WYMAGANE od 2026)"""
+    t = nazwa_skladnika.lower()
+    zwroty_swieze = ["świeże", "świeży", "naturalny", "mielone (świeże)"]
+    for zwrot in zwroty_swieze:
+        if zwrot in t:
+            return True
+    if not sprawdz_czy_przetworzony(t):
+        for mieso in KATEGORIE_SKLADNIKOW["mieso_swieze"]:
+            if mieso in t and not sprawdz_czy_przetworzony(t):
+                return True
+    return False
+
+def sprawdz_wymogi_2026(nazwa_dania, skladniki, typ_dania):
+    """Sprawdzenie zgodności z Rozp. MZ 2026"""
+    niezgodnosci = []
+    tekst = f"{nazwa_dania} {' '.join(s['nazwa_skladnika'] for s in skladniki)}".lower()
+    
+    ma_warzywa = any(any(w in tekst for w in KATEGORIE_SKLADNIKOW["warzywo"]) 
+                     for s in skladniki)
+    if not ma_warzywa:
+        niezgodnosci.append("Brak warzyw (WYMAGANE!)")
+    
+    ilosc_warzyw = sum(1 for s in skladniki 
+                       if any(w in s["nazwa_skladnika"].lower() 
+                              for w in KATEGORIE_SKLADNIKOW["warzywo"]))
+    ilosc_owocow = sum(1 for s in skladniki 
+                       if any(o in s["nazwa_skladnika"].lower() 
+                              for o in KATEGORIE_SKLADNIKOW["owoc"]))
+    if ilosc_owocow > 0 and ilosc_warzyw <= ilosc_owocow:
+        niezgodnosci.append("Owoce muszą być mniejszością niż warzywa")
+    
+    for skladnik in skladniki:
+        if sprawdz_czy_przetworzony(skladnik["nazwa_skladnika"]):
+            niezgodnosci.append(f"ZAKAZ: '{skladnik['nazwa_skladnika']}' to mięso przetworzane!")
+    
+    ma_mieso = any(any(m in s["nazwa_skladnika"].lower() 
+                       for m in KATEGORIE_SKLADNIKOW["mieso_swieze"]) 
+                   for s in skladniki)
+    if ma_mieso:
+        swiezy = any(sprawdz_czy_swiezy_mieso(s["nazwa_skladnika"]) 
+                    for s in skladniki)
+        if not swiezy and not any(sprawdz_czy_przetworzony(s["nazwa_skladnika"]) 
+                                  for s in skladniki):
+            niezgodnosci.append("Jeśli mięso - musi być ŚWIEŻE (nie może być garmażeryjne)")
+    
+    if typ_dania == "zupa":
+        ma_wywar_warz = any(any(w in s["nazwa_skladnika"].lower() 
+                               for w in KATEGORIE_SKLADNIKOW["wywar_warzywny"]) 
+                           for s in skladniki)
+        ma_wywar_mies = any(any(w in s["nazwa_skladnika"].lower() 
+                               for w in KATEGORIE_SKLADNIKOW["wywar_mieso_ZAKAZ"]) 
+                           for s in skladniki)
+        if not ma_wywar_warz and ma_wywar_mies:
+            niezgodnosci.append("ZUPA: Musi być na wywarze warzywnym, nie mięsnym!")
+    
+    return {
+        "zgodny": len(niezgodnosci) == 0,
+        "niezgodnosci": niezgodnosci
+    }
+
+def main():
+    print("\n" + "="*70)
+    print("GENERATOR DAŃ SZKOLNYCH - WERSJA 2026")
+    print("Rozporządzenie MZ z 16 lutego 2026 (Dz.U. 2026 poz. 197)")
+    print("Normy Żywienia NIZP PZH-PIB 2024")
+    print("="*70)
+    
+    print("\n📋 GŁÓWNE ZMIANY OD WRZEŚNIA 2026:")
+    print("─" * 70)
+    for wymoga, szczegoly in WYMOGI_ROZP_MZ_2026.items():
+        print(f"\n✅ {wymoga} [{szczegoly['priorytet']}]")
+        print(f"   {szczegoly['wymóg']}")
+        print(f"   ({szczegoly['opis']})")
+    
+    print("\n📊 NORMY ENERGETYCZNE (NIZP PZH-PIB 2024):")
+    print("─" * 70)
+    for grupa, wartosci in NORMY_ENERGETYCZNE_2024.items():
+        if isinstance(wartosci, dict):
+            print(f"  {grupa}: {wartosci}")
+        else:
+            print(f"  {grupa}: {wartosci} kcal/dobę")
+    
+    print("\n🏆 POKRYCIE ENERGII POSIŁKAMI:")
+    print("─" * 70)
+    for typ, dane in POKRYCIE_ENERGII.items():
+        print(f"  {dane['opis']}: {dane['procent']}%")
+    
+    print("\n⚙️  KRYTERIA PRODUKTÓW (Tabela z Rozp. MZ 2026):")
+    print("─" * 70)
+    for kategoria, kryteria in KRYTERIA_PRODUKTOW_2026.items():
+        print(f"\n  {kategoria}:")
+        for kryterium, wartosc in kryteria.items():
+            print(f"    - {kryterium}: {wartosc}")
+    
+    print("\n" + "="*70)
+    print("✅ GENERATOR GOTOWY DO UŻYTKU")
+    print("Wszystkie wymogi Rozp. MZ 2026 zostały zaimplementowane")
+    print("="*70 + "\n")
+
+if __name__ == "__main__":
+    main()

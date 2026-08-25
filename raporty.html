@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Eksportuj raporty i podsumowania zapisanych posiłków stołówki.">
+        <title>Stołówka – Raporty</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="raporty">
+                <section id="naglowek-raporty">
+                    <h1>Raporty</h1>
+                    <button id="eksportuj-pdf">Eksportuj PDF</button>
+                    <p id="opis-raportow"></p>
+                </section>
+
+                <section id="zakres-raportow">
+                    <label for="zakres-dni">Pokaż ostatnie:</label>
+                    <select id="zakres-dni">
+                        <option value="7">7 dni</option>
+                        <option value="14">14 dni</option>
+                        <option value="30">30 dni</option>
+                        <option value="9999">Wszystkie</option>
+                    </select>
+                </section>
+
+                <section id="podsumowanie-raportow"></section>
+                <section id="lista-raportow" aria-live="polite"></section>
+            </section>
+        </section>
+        <script src="script.js"></script>
+        <script src="raporty.js"></script>
+    </body>
+</html>

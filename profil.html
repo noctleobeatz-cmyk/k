@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Skonfiguruj dane placówki, limit obiadów i liczbę dzieci w grupach wiekowych.">
+        <title>Stołówka – Profil placówki</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="profil">
+                <section id="naglowek-profilu">
+                    <h1>Profil</h1>
+                    <p>Dane placówki używane do wyliczania zapotrzebowania kalorycznego i norm żywieniowych</p>
+                </section>
+
+                <section id="brak-profilu" hidden>
+                    <p>Nie skonfigurowano jeszcze danych placówki. Uzupełnij formularz poniżej, aby zacząć.</p>
+                </section>
+
+                <section id="dane-profilu" hidden>
+                    <section class="wiersz-profilu">
+                        <span class="etykieta-profilu">Placówka</span>
+                        <b id="profil-placowka"></b>
+                    </section>
+
+                    <section class="wiersz-profilu">
+                        <span class="etykieta-profilu">Liczba dań w obiedzie</span>
+                        <b id="profil-obiady"></b>
+                    </section>
+
+                    <section class="wiersz-profilu">
+                        <span class="etykieta-profilu">Łączna liczba dzieci</span>
+                        <b id="profil-dzieci"></b>
+                    </section>
+
+                    <section class="wiersz-profilu">
+                        <span class="etykieta-profilu">Dzienny cel kaloryczny</span>
+                        <b id="profil-kcal"></b>
+                    </section>
+
+                    <section class="wiersz-profilu">
+                        <span class="etykieta-profilu">Ostatnia aktualizacja</span>
+                        <b id="profil-data"></b>
+                    </section>
+
+                    <h3>Grupy wiekowe</h3>
+                    <section id="profil-grupy-wiekowe"></section>
+                </section>
+
+                <section id="profil-edytor" hidden>
+                    <h2 id="profil-edytor-naglowek">Dane placówki</h2>
+                    <p class="podpowiedz-domyslna">Cel kaloryczny to średnia ważona zapotrzebowania energetycznego wszystkich wpisanych dzieci (suma kcal wszystkich dzieci podzielona przez liczbę dzieci) - to zapotrzebowanie na JEDNEGO ucznia, a nie suma dla całej placówki.</p>
+
+                    <label for="gdzie">Placówka</label>
+                    <input type="text" id="gdzie" placeholder="Nazwa placówki">
+
+                    <label for="obiady">Limit obiadów dziennie</label>
+                    <input type="number" id="obiady" min="1" value="1">
+
+                    <fieldset>
+                        <legend>Grupy wiekowe (liczba dzieci)</legend>
+                        <section id="grupy-wiekowe"></section>
+                    </fieldset>
+
+                    <p>Podgląd celu kalorycznego: <b id="podglad-kcal">- kcal</b></p>
+
+                    <section id="akcje-edytora">
+                        <button type="button" id="zapisz-btn">Zapisz dane</button>
+                        <button type="button" id="anuluj-edycje-btn" hidden>Anuluj</button>
+                    </section>
+                </section>
+
+                <section id="akcje-profilu">
+                    <button type="button" id="edytuj-profil-btn">Edytuj dane placówki</button>
+                    <button type="button" id="wyczysc-dane-btn">Wyczyść wszystkie zapisane dane</button>
+                </section>
+
+                <p id="status-profilu"></p>
+            </section>
+        </section>
+        <script src="script.js"></script>
+        <script src="profil.js"></script>
+    </body>
+</html>

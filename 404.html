@@ -1,0 +1,103 @@
+from typing import List, Optional
+from sqlalchemy import create_engine, String, Float
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, Session
+
+
+class Base(DeclarativeBase):
+    pass
+
+class Posilek(Base):
+    __tablename__ = "posilki"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nazwa: Mapped[str] = mapped_column(String(100), nullable=False)
+    kalorie: Mapped[float] = mapped_column(Float, nullable=False)
+
+    def __repr__(self):
+        return f"<Posilek(id={self.id}, nazwa='{self.nazwa}', kalorie={self.kalorie})>"
+
+DATABASE_URL = "sqlite:///aplikacja_dieta.db"
+engine = create_engine(DATABASE_URL, echo=False)
+Base.metadata.create_all(bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def dodaj_posilek(db_session: Session, nazwa: str, kalorie: float) -> Posilek:
+    nowy_posilek = Posilek(nazwa=nazwa, kalorie=kalorie)
+    db_session.add(nowy_posilek)
+    db_session.commit()
+    db_session.refresh(nowy_posilek)
+    return nowy_posilek
+
+
+def pobierz_posilki(db_session: Session) -> List[Posilek]:
+    return db_session.query(Posilek).all()
+
+def usun_posilek(db_session: Session, posilek_id: int) -> bool:
+    posilek = db_session.query(Posilek).filter(Posilek.id == posilek_id).first()
+    if posilek is None:
+        return False
+    db_session.delete(posilek)
+    db_session.commit()
+    return True
+
+def wczytaj_float(prompt: str) -> float:
+    while True:
+        try:
+            return float(input(prompt))
+        except ValueError:
+            print("To nie jest poprawna liczba, spróbuj ponownie.")
+
+def wczytaj_int(prompt: str) -> int:
+    while True:
+        try:
+            return int(input(prompt))
+        except ValueError:
+            print("To nie jest poprawna liczba całkowita, spróbuj ponownie.")
+
+
+if __name__ == "__main__":
+    db = SessionLocal()
+
+    try:
+        while True:
+            print("\n--- MENU ---")
+            print("1. Dodaj posiłek")
+            print("2. Pokaż wszystkie posiłki")
+            print("3. Usuń posiłek")
+            print("4. Wyjście")
+            wybor = input("Wybierz opcję: ").strip()
+
+            if wybor == "1":
+                nazwa = input("Wprowadź nazwę dania: ").strip()
+                kalorie = wczytaj_float("Podaj kalorie: ")
+                posilek = dodaj_posilek(db, nazwa, kalorie)
+                print(f"Dodano: {posilek}")
+
+            elif wybor == "2":
+                wszystkie = pobierz_posilki(db)
+                if not wszystkie:
+                    print("Brak posiłków.")
+                for p in wszystkie:
+                    print(f"ID: {p.id} | {p.nazwa} -> {p.kalorie} kcal")
+
+            elif wybor == "3":
+                posilek_id = wczytaj_int("Podaj ID do usunięcia: ")
+                if usun_posilek(db, posilek_id):
+                    print(f"Usunięto posiłek o ID {posilek_id}.")
+                else:
+                    print("Nie znaleziono posiłku o takim ID.")
+
+            elif wybor == "4":
+                print("Do zobaczenia!")
+                break
+
+            else:
+                print("Nieznana opcja, spróbuj ponownie.")
+
+    except Exception as e:
+        print(f"Wystąpił błąd podczas pracy z bazą: {e}")
+
+    finally:
+        db.close()
+        print("Sesja bazy danych została bezpiecznie zamknięta.")

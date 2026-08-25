@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Sprawdź zgodność jadłospisu z rozporządzeniem Ministra Zdrowia oraz normami żywieniowymi wg grup wiekowych.">
+        <title>Stołówka – Zgodność z przepisami</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="przepisy">
+                <section id="naglowek-przepisow">
+                    <h1>Zgodność z przepisami</h1>
+                    <p>Normy żywieniowe wg grup wiekowych i sprawdzenie dzisiejszych posiłków</p>
+                </section>
+
+                <section id="zgodnosc-rozporzadzenie">
+                    <section class="zr-naglowek">
+                        <section>
+                            <h2>Zgodność z rozporządzeniem Ministra Zdrowia (2026)</h2>
+                            <p>Dz.U. 2026 poz. 197 &middot; obowiązuje od 1 września 2026 r. &middot; <span id="zr-zakres-tygodnia"></span></p>
+                        </section>
+                        <span id="zr-status-ogolny" class="tag"></span>
+                    </section>
+                    <section id="zr-lista-regul"></section>
+                    <p class="zr-stopka">Kryteria wyliczone na podstawie rozporządzenia Ministra Zdrowia z 16 lutego 2026 r. w sprawie grup środków spożywczych przeznaczonych do sprzedaży dzieciom i młodzieży w jednostkach systemu oświaty oraz wymagań dla żywienia zbiorowego. Sprawdzane są zatwierdzone obiady z bieżącego tygodnia (pon.&ndash;pt.).</p>
+                </section>
+
+                <section id="sprawdzenie-dzisiaj">
+                    <h2>Dzisiejsze posiłki</h2>
+                    <section id="wynik-sprawdzenia-dzisiaj"></section>
+                </section>
+
+                <section id="tabela-norm">
+                    <h2>Normy dzienne wg grup wiekowych</h2>
+                    <section id="tabela-norm-scroll">
+                        <section id="naglowki-tabeli-norm"></section>
+                        <section id="wiersze-tabeli-norm"></section>
+                    </section>
+                </section>
+            </section>
+        </section>
+        <script src="script.js"></script>
+        <script src="przepisy.js"></script>
+    </body>
+</html>

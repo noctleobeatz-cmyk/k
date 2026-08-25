@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Ustaw własne cele żywieniowe (kalorie, makroskładniki) dla stołówki.">
+        <title>Stołówka – Moje cele żywieniowe</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="cele">
+                <section id="naglowek-celow">
+                    <h1>Moje cele</h1>
+                    <p>Domyślne cele wyliczane są na podstawie grup wiekowych z profilu. Możesz je tu nadpisać własnymi wartościami.</p>
+                </section>
+
+                <section id="brak-profilu-cele" hidden>
+                    <p>Nie znaleziono jeszcze konfiguracji placówki. Uzupełnij ją na stronie „Dziś”, aby zobaczyć wyliczone cele domyślne.</p>
+                </section>
+
+                <section id="cel-kcal-sekcja">
+                    <label for="cel-kcal">Dzienny cel kaloryczny (kcal)</label>
+                    <input type="number" id="cel-kcal" min="0">
+                    <p id="domyslny-cel-kcal" class="podpowiedz-domyslna"></p>
+                </section>
+
+                <fieldset id="cele-skladnikow">
+                    <legend>Cele dla składników odżywczych (dziennie)</legend>
+                    <div id="lista-celow-skladnikow"></div>
+                </fieldset>
+
+                <section id="akcje-celow">
+                    <button id="zapisz-cele-btn">Zapisz cele</button>
+                    <button id="przywroc-cele-btn">Przywróć domyślne</button>
+                </section>
+
+                <p id="status-celow"></p>
+            </section>
+        </section>
+        <script src="script.js"></script>
+        <script src="cele.js"></script>
+    </body>
+</html>

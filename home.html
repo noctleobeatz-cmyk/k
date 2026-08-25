@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Zaplanuj i zatwierdź posiłki na dziś, sprawdź dzienne zapotrzebowanie kaloryczne stołówki szkolnej.">
+        <title>Stołówka – Dziś</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="favicon.png" type="image/png">
+    </head>
+
+    <body>
+        <section class="kontener">
+
+            <section id="marka"><section id="ikona">🍽</section>STOŁÓWKA</section>
+
+            <nav>
+                <a href="home.html">Dziś</a>
+                <a href="jadlospis.html">Jadłospis</a>
+                <a href="przepisy.html">Zgodność z przepisami</a>
+                <a href="raporty.html">Raporty</a>
+                <a href="dziennik.html">Dziennik</a>
+                <a href="cele.html">Moje cele</a>
+                <a href="profil.html">Profil</a>
+            </nav>
+
+            <section id="data">
+                <button id="dzien-poprzedni">&lt;</button><h1 id="pokaz"></h1><button id="dzien-nastepny">&gt;</button>
+            </section>
+
+            <section id="info">
+                <section id="cel_karyczny">
+                    <h1>Zapotrzebowanie kaloryczne</h1>
+
+                    <section><b id="zapotrzebowanie"></b>Cel kaloryczny</section>
+                    <section><b id="pozostalo"></b>Pozostało</section>
+
+                    <section id="widok-podsumowania" hidden>
+                        <span>Placówka: <b id="podsumowanie-placowka"></b> &middot; Ostatnia aktualizacja: <b id="data-zapisu"></b></span>
+                        <a href="profil.html"><button type="button" id="zaktualizuj">Edytuj w Profilu</button></a>
+                    </section>
+
+                    <section id="brak-konfiguracji" hidden>
+                        <p>Nie skonfigurowano jeszcze danych placówki.</p>
+                        <a href="profil.html"><button type="button">Uzupełnij dane w Profilu</button></a>
+                    </section>
+                </section>
+
+                <section data-posilek="sniadanie">
+                  <section class="nazwa">Śniadanie</section>
+                  <section class="meta"><span><b class="czas"></b></span><b class="kcal"></b></section>
+                  <a href="baza.html">
+                    <section class="puste"><span><h1>+</h1></span><p>>Nie dodano jeszcze posiłku</p></section>
+                    <section class="stopka-posiłku"><button>+ Dodaj posiłek</button></section>
+                  </a>
+                  <section class="zgodnosc"></section>
+                </section>
+
+                <section data-posilek="drugie_sniadanie">
+                  <section class="nazwa">Drugie śniadanie</section>
+                  <section class="meta"><span><b class="czas"></b></span><b class="kcal"></b></section>
+                  <a href="baza.html">
+                    <section class="puste"><span><h1>+</h1></span><p>>Nie dodano jeszcze posiłku</p></section>
+                    <section class="stopka-posiłku"><button>+ Dodaj posiłek</button></section>
+                  </a>
+                  <section class="zgodnosc"></section>
+                </section>
+
+                <section data-posilek="obiad">
+                  <section class="nazwa">Obiad</section>
+                  <section class="meta"><span><b class="czas"></b></span><b class="kcal"></b></section>
+                  <a href="baza.html">
+                    <section class="puste"><span><h1>+</h1></span><p>>Nie dodano jeszcze posiłku</p></section>
+                    <section class="stopka-posiłku"><button>+ Dodaj posiłek</button></section>
+                  </a>
+                  <section class="zgodnosc"></section>
+                </section>
+
+                <button id="zapisz">Zatwierdz posiłek</button>
+
+                <section class="skladniki">
+                  <h3>Zaawansowane składniki</h3>
+                  <p>Wartości dnia względem normy dziennej</p>
+                  
+                  <section class="etykieta">Błonnik</section>
+                  <section id="pierścień_B"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Cukier</section>
+                  <section id="pierścień_C"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Sód</section>
+                  <section id="pierścień_S"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Witamina C</section>
+                  <section id="pierścień_W"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Żelazo</section>
+                  <section id="pierścień_Z"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Białko</section>
+                  <section id="pierścień_Bi"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Tłuszcze</section>
+                  <section id="pierścień_T"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Węglowodany</section>
+                  <section id="pierścień_We"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+
+                  <section class="etykieta">Woda</section>
+                  <section id="pierścień_Wo"><b class="obecnie"></b>/<b class="norma_dawkowa"></b></section>
+                </section>
+
+              </section>
+          </section>
+        <script src="script.js"></script>
+        <script src="dzis.js"></script>
+    </body>
+</html>
