@@ -62,12 +62,119 @@ function odswiezZakres() {
         `${formatujDataZapisu(fmtData(state.poniedzialek))} \u2013 ${formatujDataZapisu(fmtData(piatek))}`;
 }
 
+// --- nowa walidacja kalorii ---
+function obliczKcalZeSkladnikow(skladniki) {
+    let suma = 0;
+    if (!Array.isArray(skladniki)) return {kcal: 0, brak: []};
+
+    const brak = new Set();
+
+    skladniki.forEach(function(sk) {
+        const kod = sk.kod_kreskowy || sk.kod || sk.kodKreskowy || null;
+        const gram = Number(sk.gram || sk.ilosc || 0);
+
+        if (!kod || !state.produktyPoKodzie.has(kod) || !gram) {
+            if (!kod) return; // pomijamy jeśli brak kodu
+            brak.add(kod);
+            return;
+        }
+
+        const produkt = state.produktyPoKodzie.get(kod);
+        const wo = produkt && produkt.wartosci_odzywcze_na_100g;
+        if (!wo || typeof wo.kcal !== 'number') {
+            brak.add(kod);
+            return;
+        }
+
+        suma += wo.kcal * (gram / 100);
+    });
+
+    return {kcal: Math.round(suma), brak: Array.from(brak)};
+}
+
+function sprawdzKalorieTygodnia() {
+    const dni = dniRobocze(state.poniedzialek);
+    const mismatches = [];
+    const missingProdukty = new Set();
+
+    dni.forEach(function(data) {
+        const iso = fmtData(data);
+        const dzien = wczytajDzienZKlucza(data) || pustyDzien();
+
+        SLOTY.forEach(function(slot) {
+            const lista = dzien[slot] || [];
+
+            lista.forEach(function(danie) {
+                const wynik = obliczKcalZeSkladnikow(danie.skladniki || []);
+                if (wynik.brak && wynik.brak.length) {
+                    wynik.brak.forEach(k => missingProdukty.add(k));
+                }
+
+                const expected = wynik.kcal || 0;
+                const recorded = Number(danie.kcal || 0);
+                const diff = Math.abs(expected - recorded);
+
+                // tolerancja 5 kcal lub 5% whichever bigger
+                const tol = Math.max(5, Math.round(Math.max(expected * 0.05, 0)));
+
+                if (diff > tol) {
+                    mismatches.push({data: iso, slot: slot, nazwa: danie.nazwa, recorded: recorded, expected: expected, diff: diff});
+                }
+            });
+        });
+    });
+
+    return {mismatches: mismatches, missing: Array.from(missingProdukty)};
+}
+
+function pokazSzczegolyKalorii() {
+    const raport = sprawdzKalorieTygodnia();
+    const okno = window.open("", "_blank", "noopener");
+    if (!okno) { alert('Zezwól na wyskakujące okna, aby zobaczyć szczegóły.'); return; }
+
+    let html = `<html><head><title>Raport kalorii</title><meta charset="utf-8"><style>body{font-family:Arial} table{border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px}</style></head><body>`;
+
+    html += `<h1>Raport walidacji kalorii</h1>`;
+
+    if (raport.missing.length) {
+        html += `<h2>Brakujące dane produktów (${raport.missing.length})</h2><ul>`;
+        raport.missing.forEach(function(kod){
+            const p = state.produktyPoKodzie.get(kod);
+            html += `<li>${kod} ${p ? '- ' + p.nazwa : ''}</li>`;
+        });
+        html += `</ul>`;
+    }
+
+    if (raport.mismatches.length) {
+        html += `<h2>Rozbieżności kcal (${raport.mismatches.length})</h2>`;
+        html += `<table><thead><tr><th>Data</th><th>Slot</th><th>Danie</th><th>Zapisane kcal</th><th>Obliczone kcal</th><th>Różnica</th></tr></thead><tbody>`;
+        raport.mismatches.forEach(function(m){
+            html += `<tr><td>${m.data}</td><td>${SLOTY_ETYKIETY[m.slot] || m.slot}</td><td>${m.nazwa}</td><td>${m.recorded}</td><td>${m.expected}</td><td>${m.diff}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+    }
+
+    if (!raport.missing.length && !raport.mismatches.length) {
+        html += `<p>Brak problemów z danymi kalorii w tym tygodniu.</p>`;
+    }
+
+    html += `<p><button onclick="window.print();">Drukuj</button></p>`;
+    html += `</body></html>`;
+
+    okno.document.write(html);
+    okno.document.close();
+}
+
+// --- koniec walidacji kalorii ---
+
 function renderujStatus() {
     const dni = dniRobocze(state.poniedzialek);
     const zebrane = zbierzObiadyTygodnia(dni);
     const kontener = document.getElementById("jadlospis-status");
 
-    if (zebrane.dniZDanymi === 0) {
+    const kalorieRaport = sprawdzKalorieTygodnia();
+
+    if (zebrane.dniZDanymi === 0 && kalorieRaport.mismatches.length === 0 && kalorieRaport.missing.length === 0) {
         kontener.innerHTML = `
         <section class="jadlospis-status-karta">
             <span class="tag">brak zatwierdzonych obiadów w tym tygodniu</span>
@@ -95,6 +202,11 @@ function renderujStatus() {
         [spelnioneWarzywo, `Warzywo/owoc: ${zebrane.dniZWarzywem}/${zebrane.dniZDanymi} dni`]
     ];
 
+    let dodatkowe = "";
+    if (kalorieRaport.missing.length || kalorieRaport.mismatches.length) {
+        dodatkowe = `<p class="uwaga">Błędy danych: ${kalorieRaport.missing.length} brakujących produktów, ${kalorieRaport.mismatches.length} rozbieżności kcal. <button id=\"pokaz-kalorie\">Pokaż szczegóły</button></p>`;
+    }
+
     kontener.innerHTML = `
     <section class="jadlospis-status-karta">
         <span class="tag ${wszystkoOk ? "ok" : "bad"}">${wszystkoOk ? "✅ zgodny z rozporządzeniem" : "⚠️ wymaga poprawek"}</span>
@@ -103,9 +215,14 @@ function renderujStatus() {
                 return `<span class="tag ${z[0] ? "ok" : "bad"}">${z[1]}</span>`;
             }).join("")}
         </section>
+        ${dodatkowe}
         <a href="przepisy.html">Zobacz pełne zestawienie zgodności →</a>
     </section>
     `;
+
+    if (kalorieRaport.missing.length || kalorieRaport.mismatches.length) {
+        document.getElementById('pokaz-kalorie').addEventListener('click', pokazSzczegolyKalorii);
+    }
 }
 
 function renderujSiatke() {
@@ -131,7 +248,7 @@ function renderujSiatke() {
 
             return `
             <section class="jadlospis-slot">
-                <span class="jadlospis-slot-etykieta">${SLOTY_ETYKIETY[slot]}</span>
+                <span class="jadlospis-slot-etykieta">${SLOTY_ETYKIETY[slot] || slot}</span>
                 ${nazwy ? `
                     <p class="jadlospis-slot-danie">${nazwy}${kcal ? ` <span class="jadlospis-slot-kcal">${Math.round(kcal)} kcal</span>` : ""}</p>
                     ${alergenyZestaw.size ? `<p class="jadlospis-alergeny">Alergeny: ${Array.from(alergenyZestaw).map(etykietaAlergenu).join(", ")}</p>` : ""}
@@ -214,7 +331,7 @@ function eksportujJadlospis() {
             <p>${zakres}</p>
             <table>
                 <thead>
-                    <tr><th>Dzień</th><th>Śniadanie</th><th>Drugie śniadanie</th><th>Obiad</th></tr>
+                    <tr><th>Dzień</th>${SLOTY.map(s => `<th>${SLOTY_ETYKIETY[s] || s}</th>`).join("")}</tr>
                 </thead>
                 <tbody>${wiersze}</tbody>
             </table>
@@ -248,6 +365,7 @@ function eksportujJadlospis() {
     }
 }
 
+// nawigacja tygodniowa
 document.getElementById("tydzien-poprzedni").addEventListener("click", function() {
     state.poniedzialek.setDate(state.poniedzialek.getDate() - 7);
     odswiez();
